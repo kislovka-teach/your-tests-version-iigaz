@@ -1,17 +1,37 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Variant1;
+using Variant1.Dtos;
+using Variant1.Extensions.RouteGroupBuilderExtensions;
+using Variant1.Profiles;
+using Variant1.Services.Repositories;
+using Variant1.Services.Repositories.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(
-    optionsBuilder => optionsBuilder.UseInMemoryDatabase("Variant1"));
+builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("Variant1Database"))
+        .UseSnakeCaseNamingConvention());
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => options.LoginPath = "/login");
+builder.Services.AddAutoMapper(expression => expression.AddProfile(new AutoMapperProfile()));
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPlantsRepository, PlantsRepository>();
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -22,29 +42,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
+app.MapPost("/login",
+        async (HttpContext context, [FromServices] IUserRepository userRepository, [FromBody] LoginDto loginDto) =>
+        {
+            var user = await userRepository.LogInAsync(loginDto.Login, loginDto.Password);
+            if (user == null)
+                return Results.NotFound();
+            var claims = new List<Claim>
+                { new(ClaimsIdentity.DefaultNameClaimType, user.Login) };
+            claims.AddRange(user.Roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role.Role)));
+            var principal =
+                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+            await context.SignInAsync(principal);
+            return Results.NoContent();
+        })
+    .WithName("Login")
     .WithOpenApi();
 
-app.Run();
+app.MapGroup("/plants")
+    .MapPlants()
+    .RequireAuthorization(policy => policy.RequireAuthenticatedUser());
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();

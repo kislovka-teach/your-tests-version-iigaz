@@ -11,20 +11,20 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 
         builder.HasData(new UserRole
             {
-                Id = 0,
+                Id = 1,
                 Role = "User"
             },
             new UserRole
             {
-                Id = 1,
+                Id = 2,
                 Role = "Visitor"
             }, new UserRole
             {
-                Id = 2,
+                Id = 3,
                 Role = "Gardener"
             }, new UserRole
             {
-                Id = 3,
+                Id = 4,
                 Role = "Manager"
             });
     }

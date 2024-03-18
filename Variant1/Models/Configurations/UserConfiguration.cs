@@ -11,6 +11,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.LastName).HasMaxLength(Meta.UserLastNameMaxLength);
         builder.Property(user => user.Login).HasMaxLength(Meta.UserLoginMaxLength);
         builder.Property(user => user.PasswordHash).HasMaxLength(512);
+        builder.HasAlternateKey(user => user.Login);
 
         builder.HasData(new User
         {

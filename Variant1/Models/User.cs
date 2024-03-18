@@ -20,19 +20,17 @@ public class User
     public static string HashPassword(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(128 / 8);
-        return HashPasswordWithSalt(password, salt);
+        return $"{Convert.ToBase64String(salt)}.{HashPasswordWithSalt(password, salt)}";
     }
 
     private static string HashPasswordWithSalt(string password, byte[] salt)
     {
-        var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
             password,
             salt,
             KeyDerivationPrf.HMACSHA256,
             100000,
             256 / 8));
-
-        return $"{Convert.ToBase64String(salt)}.{hashed}";
     }
 
     public static bool VerifyPassword(string hashed, string password)
