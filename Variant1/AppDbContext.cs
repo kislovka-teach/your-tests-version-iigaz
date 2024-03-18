@@ -8,7 +8,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Display> Displays { get; set; } = null!;
     public DbSet<Plant> Plants { get; set; } = null!;
-    public DbSet<Review> Reviews { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<UserRole> UserRoles { get; set; } = null!;
     public DbSet<Visitor> Visitors { get; set; } = null!;
@@ -18,7 +17,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new DisplayConfiguration());
         modelBuilder.ApplyConfiguration(new PlantConfiguration());
-        modelBuilder.ApplyConfiguration(new ReviewConfiguration());
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
     }

@@ -11,8 +11,6 @@ public class Display
     public DateOnly EndDate { get; set; }
 
     public ICollection<Plant> Plants { get; } = new List<Plant>();
-
-    public ICollection<Review> Reviews { get; } = new List<Review>();
-
+    
     public ICollection<Visitor> Visitors { get; } = new List<Visitor>();
 }
