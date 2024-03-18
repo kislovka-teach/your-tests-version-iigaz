@@ -28,10 +28,22 @@ public static class MapPlantsEndpointsExtensions
                 var plant = await plantsRepository.AddPlantAsync(addPlantDto.Name, user);
                 return Results.Ok(mapper.Map<PlantDto>(plant));
             }).RequireAuthorization(builder => builder.RequireRole("Gardener"));
-        group.MapPost("/{id:int}/water", async ([FromRoute] int id,
+        group.MapPost("{id:int}/water", async ([FromRoute] int id,
             [FromServices] IPlantsRepository plantsRepository) => await plantsRepository.WaterPlantAsync(id)
             ? Results.NoContent()
             : Results.NotFound()).RequireAuthorization(builder => builder.RequireRole("Gardener"));
+
+        group.MapPost("{plantId:int}/display/{displayId:int}", async ([FromRoute] int plantId,
+            [FromRoute] int displayId, [FromServices] IDisplayRepository displayRepository,
+            [FromServices] IPlantsRepository plantsRepository) =>
+        {
+            var plant = await plantsRepository.GetPlantAsync(plantId);
+            if (plant == null)
+                return Results.NotFound();
+            return await displayRepository.AddPlantToDisplayAsync(displayId, plant)
+                ? Results.NoContent()
+                : Results.NotFound();
+        }).RequireAuthorization(builder => builder.RequireRole("Gardener").RequireRole("Manager"));
 
         return group;
     }

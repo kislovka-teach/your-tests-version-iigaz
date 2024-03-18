@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Variant1;
 using Variant1.Dtos;
 using Variant1.Extensions.RouteGroupBuilderExtensions;
+using Variant1.Models;
+using Variant1.Models.Validators;
 using Variant1.Profiles;
 using Variant1.Services.Repositories;
 using Variant1.Services.Repositories.Abstractions;
@@ -27,6 +30,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPlantsRepository, PlantsRepository>();
+builder.Services.AddScoped<IDisplayRepository, DisplayRepository>();
+builder.Services.AddScoped<IVisitorRepository, VisitorRepository>();
+builder.Services.AddScoped<IValidator<Display>, DisplayValidator>();
 
 var app = builder.Build();
 
@@ -62,5 +68,7 @@ app.MapPost("/login",
 app.MapGroup("/plants")
     .MapPlants()
     .RequireAuthorization(policy => policy.RequireAuthenticatedUser());
+
+app.MapGroup("/displays").MapDisplays();
 
 app.Run();
