@@ -1,6 +1,11 @@
 @Variant1_HostAddress = http://localhost:5126
 
-GET {{Variant1_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{Variant1_HostAddress}}/login/
+Content-Type: application/json
+
+{
+  "login": "ivanko",
+  "password": "Qwerty123!"
+}
 
 ###
