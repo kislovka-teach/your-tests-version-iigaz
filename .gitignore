@@ -1,5 +1,4 @@
-# Created by https://www.toptal.com/developers/gitignore/api/csharp,rider,visualstudio,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=csharp,rider,visualstudio,visualstudiocode
+.idea/
 
 ### Csharp ###
 ## Ignore Visual Studio temporary files, build results, and
