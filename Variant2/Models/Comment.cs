@@ -4,6 +4,8 @@ namespace Variant2.Models;
 
 public class Comment
 {
+    public int Id { get; set; }
+
     [MaxLength(Meta.CommentMaxLength)]
     public string Text { get; set; } = null!;
 

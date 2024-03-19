@@ -30,6 +30,7 @@ public class RevisionRepository(AppDbContext context) : IRevisionRepository
         };
         var added = await context.Revisions.AddAsync(revision);
         current.NextRevision = added.Entity;
+        context.Update(current);
         await context.SaveChangesAsync();
         return added.Entity;
     }

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Variant2.Dtos;
@@ -14,9 +15,10 @@ public static class MapArticlesEndpointsExtensions
         group.MapGet("",
             async ([FromServices] IMapper mapper,
                     [FromServices] IArticleRepository articleRepository) =>
-                mapper.Map<ArticlesInListDto>(await articleRepository.GetAllArticles()));
+                mapper.Map<List<ArticlesInListDto>>(await articleRepository.GetAllArticles()));
         group.MapPost("",
             async (ClaimsPrincipal principal,
+                [FromServices] IMapper mapper,
                 [FromServices] IUserRepository userRepository,
                 [FromServices] IArticleRepository articleRepository, [FromBody] AddArticleDto addArticleDto) =>
             {
@@ -24,7 +26,7 @@ public static class MapArticlesEndpointsExtensions
                 if (user == null)
                     return Results.Forbid();
                 var added = await articleRepository.AddArticle(addArticleDto.Title, addArticleDto.Text, user);
-                return Results.Ok(added);
+                return Results.Ok(mapper.Map<ViewArticleDto>(added));
             }).RequireAuthorization(policy => policy.RequireRole("Editor"));
         group.MapGet("{articleId:int}",
             async (int articleId,
@@ -39,7 +41,6 @@ public static class MapArticlesEndpointsExtensions
                     [FromServices] IUserRepository userRepository,
                     [FromServices] IArticleRepository articleRepository) =>
                 {
-                    //TODO: добавить id в claims
                     var userId = principal.FindFirstValue("userId");
                     var article = await articleRepository.ViewArticle(articleId);
                     if (article == null)
@@ -124,7 +125,8 @@ public static class MapArticlesEndpointsExtensions
             var revision2 = await revisionRepository.GetRevision(secondRevisionId);
             if (revision1 == null || revision2 == null)
                 return Results.NotFound();
-            return Results.Ok(comparer.Compare(revision1, revision2));
+            return Results.File(Encoding.UTF8.GetBytes(await comparer.Compare(revision1, revision2)), "text/plain",
+                "comparison.diff");
         });
         return group;
     }

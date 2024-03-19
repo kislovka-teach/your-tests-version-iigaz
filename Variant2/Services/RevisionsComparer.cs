@@ -12,7 +12,7 @@ public class RevisionsComparer(IRevisionRepository revisionRepository) : IRevisi
         var lines1 = t1.Split('\n').Select(l => '-' + l).ToArray();
         var lines2 = t2.Split('\n').Select(l => '+' + l).ToArray();
 
-        return $"@@ -1,{lines1.Length} +1,{lines2.Length} @@\n" + string.Join('\n', lines1) +
+        return $"@@ -1,{lines1.Length} +1,{lines2.Length} @@\n" + string.Join('\n', lines1) + "\n" +
                string.Join('\n', lines2) + "\n";
     }
 }

@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Variant2.Models;
 
-public class Revision
+public class Revision : IEntityTypeConfiguration<Revision>
 {
     public int Id { get; set; }
 
@@ -19,4 +21,13 @@ public class Revision
 
     public int? NextRevisionId { get; set; }
     public Revision? NextRevision { get; set; }
+
+
+    public void Configure(EntityTypeBuilder<Revision> builder)
+    {
+        builder.HasOne(revision => revision.PreviousRevision)
+            .WithOne(revision => revision.NextRevision)
+            .HasForeignKey((Revision revision) => revision.NextRevisionId)
+            .HasForeignKey((Revision revision) => revision.PreviousRevisionId);
+    }
 }

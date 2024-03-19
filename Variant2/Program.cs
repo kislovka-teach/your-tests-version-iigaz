@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Variant2;
 using Variant2.Dtos;
 using Variant2.Extensions.RouteGroupBuilderExtensions;
+using Variant2.Profiles;
 using Variant2.Services;
 using Variant2.Services.Repositories;
 using Variant2.Services.Repositories.Abstractions;
@@ -18,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(expression => expression.AddProfile(new AutoMapperProfile()));
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
     optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("Variant2Database"))
         .UseSnakeCaseNamingConvention());
@@ -65,14 +67,14 @@ app.MapPost("/login",
             if (user == null)
                 return Results.NotFound();
             var claims = new List<Claim>
-                { new(ClaimsIdentity.DefaultNameClaimType, user.Login) };
+                { new(ClaimsIdentity.DefaultNameClaimType, user.Login), new("userId", user.Id.ToString()) };
             claims.AddRange(user.Roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role.Role)));
             var jwt = new JwtSecurityToken(configuration["Issuer"], configuration["Audience"], claims,
-                DateTime.UtcNow.AddDays(1),
+                expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: new SigningCredentials(
                     new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JwtKey"]!)),
                     SecurityAlgorithms.HmacSha256));
-            return Results.Ok(new JwtSecurityTokenHandler().WriteToken(jwt));
+            return Results.Ok(new { AccessToken = new JwtSecurityTokenHandler().WriteToken(jwt) });
         })
     .WithName("Login")
     .WithOpenApi();
