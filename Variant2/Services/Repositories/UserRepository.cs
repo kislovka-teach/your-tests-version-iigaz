@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Variant2.Models;
 using Variant2.Services.Repositories.Abstractions;
@@ -17,5 +18,13 @@ public class UserRepository(AppDbContext context) : IUserRepository
     public async Task<User?> FindByLoginAsync(string login)
     {
         return await context.Users.Include(u => u.Roles).SingleOrDefaultAsync(u => u.Login == login);
+    }
+
+    public async Task<User?> FindByClaimsAsync(ClaimsPrincipal principal)
+    {
+        var login = principal.FindFirstValue(ClaimsIdentity.DefaultNameClaimType);
+        if (login == null)
+            return null;
+        return await FindByLoginAsync(login);
     }
 }

@@ -57,12 +57,12 @@
 6. `DELETE /{articleId}` - удаление статьи. Доступно только автору статьи, или пользователям с ролью Moderator.
 7. `GET /{articleId}/comments` - просмотр комментариев к статье. Доступно всем.
 8. `POST /{articleId}/comments` - добавление комментария к статье. Доступно только зарегистрированным пользователям.
-9. `GET /{articleId}/revisions/{revisionId}` - просмотр статьи на момент изменения номер `revisionId`. Доступно всем.
-10. `GET /{articleId}/revisions/compare?{firstRevisionId}&{secondRevisionId}` - сравнение версий статьи
+9. `GET /revisions/{revisionId}` - просмотр статьи на момент изменения номер `revisionId`. Доступно всем.
+10. `GET /revisions/compare?{firstRevisionId}&{secondRevisionId}` - сравнение версий статьи
     от `firstRevisionId` и от `secondRevisionId`. Формат вывода может быть любой, популярным
     является [unidiff](https://ru.wikipedia.org/wiki/Diff#Универсальный_формат). Главное чтобы было видно, как
     из `firstRevisionId` получить `secondRevisionId`. Доступно всем.
-11. `POST /{articleId}/revisions/rollback` - возвращение к предыдущей версии статьи. Последнее изменение удаляется из
+11. `POST /{articleId}/rollback` - возвращение к предыдущей версии статьи. Последнее изменение удаляется из
     памяти. Доступно только автору откатываемого изменения, автору статьи или пользователю с ролью Moderator.
 
 ### Примечания к реализации

@@ -1,10 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Variant1.Dtos;
+using Microsoft.IdentityModel.Tokens;
 using Variant2;
+using Variant2.Dtos;
 using Variant2.Extensions.RouteGroupBuilderExtensions;
 using Variant2.Services;
 using Variant2.Services.Repositories;
@@ -19,6 +21,21 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
     optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("Variant2Database"))
         .UseSnakeCaseNamingConvention());
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+
+    {
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Audience"],
+        ValidateLifetime = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JwtKey"]!)),
+        ValidateIssuerSigningKey = true
+    };
+});
+builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IRevisionsComparer, RevisionsComparer>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
@@ -27,6 +44,9 @@ builder.Services.AddScoped<IRevisionRepository, RevisionRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -38,7 +58,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapPost("/login",
-        async (HttpContext context, [FromServices] IUserRepository userRepository, [FromBody] LoginDto loginDto) =>
+        async (IConfiguration configuration, [FromServices] IUserRepository userRepository,
+            [FromBody] LoginDto loginDto) =>
         {
             var user = await userRepository.LogInAsync(loginDto.Login, loginDto.Password);
             if (user == null)
@@ -46,10 +67,12 @@ app.MapPost("/login",
             var claims = new List<Claim>
                 { new(ClaimsIdentity.DefaultNameClaimType, user.Login) };
             claims.AddRange(user.Roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role.Role)));
-            var principal =
-                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
-            await context.SignInAsync(principal);
-            return Results.NoContent();
+            var jwt = new JwtSecurityToken(configuration["Issuer"], configuration["Audience"], claims,
+                DateTime.UtcNow.AddDays(1),
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JwtKey"]!)),
+                    SecurityAlgorithms.HmacSha256));
+            return Results.Ok(new JwtSecurityTokenHandler().WriteToken(jwt));
         })
     .WithName("Login")
     .WithOpenApi();

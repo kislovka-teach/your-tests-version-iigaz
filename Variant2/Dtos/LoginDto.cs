@@ -1,4 +1,4 @@
-namespace Variant1.Dtos;
+namespace Variant2.Dtos;
 
 public class LoginDto
 {

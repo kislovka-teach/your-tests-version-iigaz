@@ -11,11 +11,12 @@ public class CommentRepository(AppDbContext context) : ICommentRepository
         return await context.Comments.Where(comment => comment.ArticleId == articleId).ToListAsync();
     }
 
-    public async Task<Comment> PostComment(User user, string text)
+    public async Task<Comment> PostComment(User user, Article article, string text)
     {
         var comment = new Comment
         {
             Author = user,
+            Article = article,
             Text = text
         };
         await context.Comments.AddAsync(comment);

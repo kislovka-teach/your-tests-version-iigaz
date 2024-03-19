@@ -31,13 +31,29 @@ public class ArticleRepository(AppDbContext context, IRevisionRepository revisio
             .SingleOrDefaultAsync(article => article.Id == id);
     }
 
-    public async Task<bool> DeleteArticle(int id)
+    public async Task DeleteArticle(Article article)
     {
-        var article = await ViewArticle(id);
-        if (article == null)
-            return false;
         context.Articles.Remove(article);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<bool> ChangeArticle(Article article, string text, User author)
+    {
+        var revision = await revisionRepository.AddNextRevision(article.LatestRevision, text, author);
+        if (revision == null)
+            return false;
+        article.LatestRevision = revision;
+        await context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<Article?> Rollback(Article article)
+    {
+        var revision = await revisionRepository.Rollback(article.LatestRevision);
+        if (revision == null)
+            return null;
+        article.LatestRevision = revision;
+        await context.SaveChangesAsync();
+        return article;
     }
 }

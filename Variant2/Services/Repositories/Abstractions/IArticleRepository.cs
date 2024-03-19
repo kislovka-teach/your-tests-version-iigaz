@@ -10,5 +10,9 @@ public interface IArticleRepository
 
     public Task<Article?> ViewArticle(int id);
 
-    public Task<bool> DeleteArticle(int id);
+    public Task DeleteArticle(Article article);
+
+    public Task<bool> ChangeArticle(Article article, string text, User author);
+
+    public Task<Article?> Rollback(Article article);
 }
