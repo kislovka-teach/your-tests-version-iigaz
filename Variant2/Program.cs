@@ -1,5 +1,11 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Variant1.Dtos;
 using Variant2;
+using Variant2.Extensions.RouteGroupBuilderExtensions;
 using Variant2.Services;
 using Variant2.Services.Repositories;
 using Variant2.Services.Repositories.Abstractions;
@@ -31,29 +37,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
+app.MapPost("/login",
+        async (HttpContext context, [FromServices] IUserRepository userRepository, [FromBody] LoginDto loginDto) =>
+        {
+            var user = await userRepository.LogInAsync(loginDto.Login, loginDto.Password);
+            if (user == null)
+                return Results.NotFound();
+            var claims = new List<Claim>
+                { new(ClaimsIdentity.DefaultNameClaimType, user.Login) };
+            claims.AddRange(user.Roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role.Role)));
+            var principal =
+                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+            await context.SignInAsync(principal);
+            return Results.NoContent();
+        })
+    .WithName("Login")
     .WithOpenApi();
 
-app.Run();
+app.MapGroup("").MapArticles();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();

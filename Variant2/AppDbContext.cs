@@ -14,5 +14,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new User());
+        modelBuilder.ApplyConfiguration(new UserRole());
     }
 }
