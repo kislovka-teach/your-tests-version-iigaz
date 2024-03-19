@@ -1,0 +1,74 @@
+@Variant2_HostAddress = http://localhost:5287
+
+POST {{Variant2_HostAddress}}/login/
+Content-Type: application/json
+
+{
+  "login": "ivanko",
+  "password": "Qwerty123!"
+}
+
+> {%
+    client.global.set("auth_token", response.body.accessToken);
+%}
+
+###
+
+GET {{Variant2_HostAddress}}/
+
+###
+
+POST {{Variant2_HostAddress}}/
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "title": "Test Article 2",
+  "text": "Pendulum Sacred Geometry enlighten Essential Oils angels, crystals harmonic divination energy healing fibonacci compassion divine. Love bells charms awakening card readings Flower of Life sage chakras full moon lavender Chinese medicine chakra clearing practitioner. Herbalist Reiki crystals chakras pendulum peace goddess dance empath reincarnation card readings tarot awakening stones fibonacci. Full moon herbalist Chinese medicine, empath sage harmonic oracle spiritual healing spirit guides shamantic card readings chanting healer. Card readings divine massage dance. Essential Oils stones divination awakening shamantic.\n\nLight Worker chakras dance Pink Himalayan Salt, oracle bells crystals spiritual healing candles chakra clearing pendulum. Oracle compassion Light Worker Buddha sage chakras. Herbalist charms stones, card readings Sacred Geometry manifestation transformation divine candles quartz. Herbalist love card readings, angels Nepal love compassion.\n\nAngels divination spiritual healing, card readings manifestation massage Nepal lavender quartz chanting energy healing oracle angels. Sage Buddha harmonic chakra clearing love fibonacci. Spiritual healing charms angels Essential Oils awakening love. Meditate bells love, sage oracle healer Buddha spiritual healing. Empath full moon tarot lavender. Crystals Buddha manifestation harmonic oracle goddess transformation love.\n\nChinese medicine awakening reincarnation divination. Essential Oils Pink Himalayan Salt pendulum transformation lavender enlighten meditate manifestation candles sage bells love chakras spirit guides stones. Spirit guides meditate crystals Light Worker massage bells joy chakra clearing divine healing angels love healer. Spirit guides angels fibonacci chakras, card readings shamantic Essential Oils goddess chakra clearing chanting Light Worker harmonic divine charms sage. Awakening divination charms lavender oracle compassion reincarnation harmonic. Divine crystals healer oracle, Essential Oils Light Worker Buddha practitioner. Light Worker pendulum love joy, Buddha lavender stones sage reincarnation compassion.\n\nCrystals stones bells love awakening. Tarot enlighten spirit guides Buddha manifestation Reiki Nepal crystals, healer charms Chinese medicine bells. Essential Oils sage stones herbalist charms spiritual healing meditate Sacred Geometry healer manifestation shamantic love. Herbalist love chakra clearing transformation spirit guides shamantic Chinese medicine angels love dance pendulum enlighten practitioner bells."
+}
+
+###
+
+GET {{Variant2_HostAddress}}/1
+
+###
+
+PUT {{Variant2_HostAddress}}/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "lol"
+}
+
+###
+
+DELETE {{Variant2_HostAddress}}/2
+Authorization: Bearer {{auth_token}}
+
+###
+
+GET {{Variant2_HostAddress}}/1/comments
+
+###
+
+POST {{Variant2_HostAddress}}/1/comments
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "asdfasdf"
+}
+
+###
+
+GET {{Variant2_HostAddress}}/revisions/2
+
+###
+
+GET {{Variant2_HostAddress}}/revisions/compare?firstRevisionId=2&secondRevisionId=6
+
+###
+
+POST {{Variant2_HostAddress}}/1/rollback
+Authorization: Bearer {{auth_token}}
